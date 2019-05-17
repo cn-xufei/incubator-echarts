@@ -17,7 +17,7 @@
     "test": "node build/build.js"
   },
   "dependencies": {
-    "zrender": "4.0.7"
+    "zrender": "https://github.com/cn-xufei/zrender.git"
   },
   "devDependencies": {
     "@babel/core": "7.3.4",
