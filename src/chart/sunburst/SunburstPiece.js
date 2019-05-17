@@ -87,14 +87,14 @@ SunburstPieceProto.updateData = function (
     var itemModel = node.getModel();
     var layout = node.getLayout();
     // if (!layout) {
-        // console.log(node.getLayout());
+    //     console.log(node.getLayout());
     // }
     var sectorShape = zrUtil.extend({}, layout);
     sectorShape.label = null;
 
     var visualColor = getNodeColor(node, seriesModel, ecModel);
 
-    fillDefaultColor(node, seriesModel, visualColor)
+    fillDefaultColor(node, seriesModel, visualColor);
 
     var normalStyle = itemModel.getModel('itemStyle').getItemStyle();
     var style;
@@ -203,7 +203,7 @@ SunburstPieceProto._updateLabel = function (seriesModel, visualColor, state) {
 
     var text = zrUtil.retrieve(
         seriesModel.getFormattedLabel(
-            this.node.dataIndex, 'normal', null, null, 'label'
+            this.node.dataIndex, state, null, null, 'label'
         ),
         this.node.name
     );
@@ -414,7 +414,7 @@ function isNodeHighlighted(node, activeNode, policy) {
     }
 }
 
-// Fix tooltip callback function params.color incorrect when pick a default color 
+// Fix tooltip callback function params.color incorrect when pick a default color
 function fillDefaultColor(node, seriesModel, color) {
     var data = seriesModel.getData();
     data.setItemVisual(node.dataIndex, 'color', color);

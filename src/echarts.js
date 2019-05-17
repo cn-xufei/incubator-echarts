@@ -51,10 +51,10 @@ var isFunction = zrUtil.isFunction;
 var isObject = zrUtil.isObject;
 var parseClassType = ComponentModel.parseClassType;
 
-export var version = '4.2.0';
+export var version = '4.2.1';
 
 export var dependencies = {
-    zrender: '4.0.5'
+    zrender: '4.0.6'
 };
 
 var TEST_FRAME_REMAIN_TIME = 1;
@@ -162,7 +162,7 @@ function ECharts(dom, theme, opts) {
     });
 
     /**
-     * Expect 60 pfs.
+     * Expect 60 fps.
      * @type {Function}
      * @private
      */
@@ -361,7 +361,7 @@ echartsProto.setOption = function (option, notMerge, lazyUpdate) {
     if (!this._model || notMerge) {
         var optionManager = new OptionManager(this._api);
         var theme = this._theme;
-        var ecModel = this._model = new GlobalModel(null, null, theme, optionManager);
+        var ecModel = this._model = new GlobalModel();
         ecModel.scheduler = this._scheduler;
         ecModel.init(null, null, theme, optionManager);
     }
@@ -566,6 +566,21 @@ echartsProto.getConnectedDataURL = function (opts) {
         targetCanvas.width = width;
         targetCanvas.height = height;
         var zr = zrender.init(targetCanvas);
+
+        // Background between the charts
+        if (opts.connectedBackgroundColor) {
+            zr.add(new graphic.Rect({
+                shape: {
+                    x: 0,
+                    y: 0,
+                    width: width,
+                    height: height
+                },
+                style: {
+                    fill: opts.connectedBackgroundColor
+                }
+            }));
+        }
 
         each(canvasList, function (item) {
             var img = new graphic.Image({
@@ -1508,7 +1523,7 @@ var MOUSE_EVENT_NAMES = [
  */
 echartsProto._initEvents = function () {
     each(MOUSE_EVENT_NAMES, function (eveName) {
-        this._zr.on(eveName, function (e) {
+        var handler = function (e) {
             var ecModel = this.getModel();
             var el = e.target;
             var params;
@@ -1577,8 +1592,14 @@ echartsProto._initEvents = function () {
 
                 this.trigger(eveName, params);
             }
-
-        }, this);
+        };
+        // Consider that some component (like tooltip, brush, ...)
+        // register zr event handler, but user event handler might
+        // do anything, such as call `setOption` or `dispatchAction`,
+        // which probably update any of the content and probably
+        // cause problem if it is called previous other inner handlers.
+        handler.zrEventfulCallAtLast = true;
+        this._zr.on(eveName, handler, this);
     }, this);
 
     each(eventActionMap, function (actionType, eventType) {
@@ -1936,7 +1957,7 @@ function enableConnect(chart) {
  * @param {Object} [theme]
  * @param {Object} opts
  * @param {number} [opts.devicePixelRatio] Use window.devicePixelRatio by default
- * @param {string} [opts.renderer] Currently only 'canvas' is supported.
+ * @param {string} [opts.renderer] Can choose 'canvas' or 'svg' to render the chart.
  * @param {number} [opts.width] Use clientWidth of the input `dom` by default.
  *                              Can be 'auto' (the same as null/undefined)
  * @param {number} [opts.height] Use clientHeight of the input `dom` by default.
